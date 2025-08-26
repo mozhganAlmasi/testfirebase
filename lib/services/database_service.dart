@@ -35,7 +35,12 @@ class DatabaseService {
   Stream<QuerySnapshot> getUsersAll(){
     return _db.collection(USER_COLLECTION).snapshots();
   }
-
+  Stream<QuerySnapshot> getAllUsersExceptCurrent(String currentUid) {
+    return _db
+        .collection(USER_COLLECTION)
+        .where('uid', isNotEqualTo: currentUid)
+        .snapshots();
+  }
   Future<DocumentSnapshot> getUser(String _uid) {
     return _db.collection(USER_COLLECTION).doc(_uid).get();
   }

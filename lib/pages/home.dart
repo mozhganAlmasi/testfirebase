@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> {
    return SafeArea(
      child: Padding(padding: EdgeInsets.symmetric(horizontal: 15 , vertical: 20),
      child: StreamBuilder<QuerySnapshot>(
-     stream: _databaseService.getUsersAll(),
+     stream: _databaseService.getAllUsersExceptCurrent(_authService.user!.uid),
      builder: (context, snapshot) {
        if(snapshot.hasError){
          return const Center(child: Text("دریافت اطلاعات انجام نشد"));

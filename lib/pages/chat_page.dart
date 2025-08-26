@@ -84,15 +84,16 @@ class _ChatPageState extends State<ChatPage> {
 
 
   List<ChatMessage> _generateChatMessagesList(List<MyChatMessage> messages) {
-    return messages.map((m) {
+    List<ChatMessage> returnlist= messages.map((m) {
       return ChatMessage(
         user: m.senderID == currentuser!.id ? currentuser! : otheruser!,
         text: m.content,
         createdAt: m.sentTime,
       );
     }).toList();
+    returnlist.sort((a,b){return b.createdAt.compareTo(a.createdAt);});
+    return returnlist;
   }
-
 
   Future<void> _sendMessage(ChatMessage chatmessage) async {
     try {
@@ -102,13 +103,10 @@ class _ChatPageState extends State<ChatPage> {
         type: MessageType.TEXT,
         sentTime: DateTime.now(),
       );
-
-
       await _databaseService.addMessageToChat(chatID , message );
     } catch (e) {
       print(e);
     }
   }
-
 
 }
