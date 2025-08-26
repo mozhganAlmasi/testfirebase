@@ -1,15 +1,16 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:testfirebase/services/cloud_storage_service.dart';
+import 'package:testfirebase/services/database_service.dart';
 import 'package:testfirebase/services/media_service.dart';
-
 import '../const.dart';
 import '../services/alert_services.dart';
 import '../services/auth_service.dart';
 import '../services/navigation_service.dart';
 import '../widgets/custom_input_fields.dart';
 import '../widgets/rounded_button.dart';
+import '../widgets/rounded_image.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -25,6 +26,8 @@ class _RegisterPageState extends State<RegisterPage> {
       GetIt.instance<NavigationService>();
   final AlertServices alertServices = GetIt.instance<AlertServices>();
   final MediaService mediaService = GetIt.instance<MediaService>();
+  final DatabaseService databaseService = GetIt.instance<DatabaseService>();
+
 
   String? _email;
   String? _password;
@@ -32,6 +35,8 @@ class _RegisterPageState extends State<RegisterPage> {
   late double _deviceHeight;
   late double _deviceWidth;
   File? _selectedImage;
+
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -57,10 +62,12 @@ class _RegisterPageState extends State<RegisterPage> {
           children: [
             _headerText(),
             _pfpSelectionField(),
-            _registerForm(),
-
-            SizedBox(height: 20),
+            if (!isLoading) _registerForm(),
+            SizedBox(height: 5),
             _registerAccountLink(),
+            if (isLoading) 
+              const Expanded(
+                  child: Center(child: CircularProgressIndicator())),
           ],
         ),
       ),
@@ -88,6 +95,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
+
   Widget _registerForm() {
     return Container(
       height: _deviceHeight * 0.35,
@@ -105,9 +113,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   _name = _value;
                 });
               },
-              regEx: RegExp(
-                r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
-              ),
+              regEx:RegExp(r"^[A-Za-z][A-Za-z\s'-]{1,29}$"),
               hintText: "Name",
               obscureText: false,
             ),
@@ -165,14 +171,31 @@ class _RegisterPageState extends State<RegisterPage> {
       height: _deviceHeight * 0.065,
       width: _deviceWidth * 0.65,
       onPressed: () async {
+        setState(() {
+          isLoading = true;
+        });
         try {
           if ((_registerFormKey.currentState?.validate() ?? false) &&
               _selectedImage != null) {
             _registerFormKey.currentState?.save();
+            bool result = await authService.signup(_email!, _password!);
+            if (result) {
+              // String? pfpUrl = await _cloudStorageService.saveUserImageToStorage(authService.user!.uid, _profileImage!);
+              await databaseService.createUser(authService.user!.uid, _email!, _name!, "http://");
+              alertServices.showToast(text: "ثبت با موفقیت انجام شد.") ;
+              navigationService.navigateToRoute("/home");
+            }else{
+              throw Exception("unable to registe user");
+            }
+            print(result);
           }
         } catch (e) {
+          alertServices.showToast(text: "ثبت ناموفق.") ;
           print(e);
         }
+        setState(() {
+          isLoading = false;
+        });
       },
     );
   }

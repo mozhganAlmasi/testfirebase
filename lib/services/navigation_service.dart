@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:testfirebase/models/chat_user.dart';
 
 class NavigationService {
   static GlobalKey<NavigatorState> navigatorKey =
@@ -10,6 +11,9 @@ class NavigationService {
 
   void navigateToRoute(String _route) {
     navigatorKey.currentState?.pushNamed(_route);
+  }
+  Future<dynamic>? navigateToRouteWithArgument(String routeName, {MyChatUser? user}) {
+    return navigatorKey.currentState?.pushNamed(routeName, arguments: user);
   }
 
   void navigateToPage(Widget _page) {
